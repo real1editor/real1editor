@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Real1Editor | Quantum Portfolio</title>
+
+<!-- Telegram WebApp SDK -->
+<script async src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!-- Fonts (optional; if offline it's fine) -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* =======================
+   Theme Vars (from your chunk)
+   ======================= */
+:root{
+  --primary-holo: #00f3ff;
+  --secondary-holo: #b967ff;
+  --accent-neon: #ff2a6d;
+  --deep-space: #0a0e17;
+  --space-dust: #1a1f35;
+  --void: #050810;
+  --text-glow: rgba(0, 243, 255, 0.7);
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --card-radius: 14px;
+  --muted: rgba(255,255,255,0.65);
+}
+
+/* Global reset + base */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'Exo 2', sans-serif;
+  background: linear-gradient(180deg,var(--deep-space), #02030a 200px);
+  color:#fff;
+  overflow-x:hidden;
+  min-height:100vh;
+  position:relative;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* NEW: Animated Intro Section */
+#intro-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 9998;
+    background: var(--deep-space);
+    transition: opacity 1s ease, visibility 1s;
+}
+
+#intro-section.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.holographic-display {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.holo-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    opacity: 0.3;
+}
+
+.main-title h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    font-weight: 900;
+    margin-bottom: 20px;
+    position: relative;
+    text-shadow: 0 0 30px var(--primary-holo);
+}
+
+.glitch-text {
+    position: relative;
+    color: var(--primary-holo);
+}
+
+.glitch-text::before,
+.glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.glitch-text::before {
+    animation: glitch-1 0.5s infinite linear alternate-reverse;
+    color: var(--accent-neon);
+    z-index: -1;
+}
+
+.glitch-text::after {
+    animation: glitch-2 0.5s infinite linear alternate-reverse;
+    color: var(--secondary-holo);
+    z-index: -2;
+}
+
+.title-sub {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(0.9rem, 3vw, 1.2rem);
+    letter-spacing: 3px;
+    color: var(--secondary-holo);
+    margin-bottom: 40px;
+}
+
+.ai-orb {
+    position: relative;
+    width: clamp(150px, 40vw, 200px);
+    height: clamp(150px, 40vw, 200px);
+    margin: 40px auto;
+}
+
+.orb-ring {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--primary-holo);
+    border-right: 2px solid var(--secondary-holo);
+    animation: rotate 3s linear infinite;
+}
+
+.orb-glow {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--primary-holo) 0%, transparent 70%);
+    opacity: 0.3;
+    animation: pulse 2s infinite alternate;
+}
+
+.welcome-message p {
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    margin-bottom: 30px;
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 600px;
+    line-height: 1.6;
+    padding: 0 20px;
+}
+
+.pulse-cta {
+    position: relative;
+    cursor: pointer;
+}
+
+.cta-orb {
+    padding: 15px 30px;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px;
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    color: var(--primary-holo);
+    font-weight: bold;
+}
+
+.cta-orb::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.cta-orb:hover::before {
+    left: 100%;
+}
+
+.cta-orb:hover {
+    border-color: var(--primary-holo);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+    transform: translateY(-3px);
+}
+
+/* Neural Loader / Begin Transmission */
+#neural-loader{
+  position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:var(--void);
+  transition:opacity .9s ease, visibility .9s;
+}
+#neural-loader.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+
+.hologram-sphere{ width:120px; height:120px; border-radius:50%;
+  background:conic-gradient(from 0deg, var(--primary-holo), var(--secondary-holo), var(--accent-neon), var(--primary-holo));
+  animation:rotate 3s linear infinite; position:relative; box-shadow:0 0 40px rgba(0,243,255,0.06);
+}
+.hologram-sphere::after{ content:''; position:absolute; inset:10px; border-radius:50%; background:var(--void); }
+.quantum-dots{ display:flex; gap:12px; margin-top:22px; }
+.dot{ width:10px; height:10px; border-radius:50%; background:var(--primary-holo); animation:pulse 1.5s infinite alternate; }
+.dot:nth-child(2){ animation-delay:.15s } .dot:nth-child(3){ animation-delay:.3s } .dot:nth-child(4){ animation-delay:.45s } .dot:nth-child(5){ animation-delay:.6s }
+.loading-text{ font-family:'Orbitron', monospace; font-size:13px; letter-spacing:2px; color:var(--primary-holo); text-shadow:0 0 10px var(--text-glow); margin-top:14px}
+
+/* Layout & cards */
+canvas#bgCanvas{ position:fixed; inset:0; z-index:-20; pointer-events:none; display:block; }
+main{ position:relative; z-index:10; }
+section{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:70px 20px; scroll-snap-align:start; }
+html{ scroll-snap-type:y mandatory; scroll-behavior:smooth; }
+
+.container{ width:100%; max-width:1200px; margin:0 auto; padding:0 18px; }
+.holo-card{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:var(--card-radius); padding:24px; border:1px solid var(--glass-border); backdrop-filter: blur(10px); box-shadow: 0 18px 50px rgba(0,0,0,0.6); transition: transform .4s ease, box-shadow .3s ease; }
+.holo-card:hover{ transform:translateY(-6px); box-shadow:0 26px 80px rgba(0,0,0,0.7); }
+
+/* Section headers */
+.section-header{ text-align:center; margin-bottom:18px; }
+.section-header h2{ font-family:'Orbitron', monospace; font-size:2.2rem; color:var(--primary-holo); text-shadow: 0 0 18px var(--text-glow); margin-bottom:8px }
+.holo-divider{ width:110px; height:3px; background: linear-gradient(90deg, transparent, var(--primary-holo), transparent); margin:0 auto 18px }
+
+/* NAV (compact; closer to edge) */
+nav.floating{ position:fixed; top:18px; right:12px; z-index:70; display:flex; gap:18px; flex-wrap:wrap; }
+.nav-pill{ padding:.6rem .9rem; border-radius:999px; border:1px solid var(--glass-border); background:linear-gradient(180deg,rgba(255,255,255,0.01), rgba(255,255,255,0.02)); color:var(--primary-holo); font-weight:700; cursor:pointer; backdrop-filter:blur(6px); transition:transform .14s ease, box-shadow .14s ease; }
+.nav-pill:hover{ transform:translateY(-6px); box-shadow:0 18px 50px rgba(0,243,255,0.06) }
+
+/* Voice orb & feedback */
+#voice-interface{ position:fixed; bottom:24px; left:24px; z-index:80; display:flex; gap:12px; align-items:center; }
+.voice-orb{ width:64px; height:64px; border-radius:50%; background:var(--glass); border:1px solid var(--glass-border); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .25s ease; }
+.voice-orb.active{ box-shadow:0 0 28px rgba(0,243,255,0.14); background: rgba(0,243,255,0.05) }
+.voice-feedback{ position:relative; padding:8px 12px; background:rgba(0,0,0,0.5); border-radius:8px; color:var(--primary-holo); font-family:'Orbitron', monospace; font-size:13px; display:none }
+.voice-feedback.active{ display:block }
+
+/* Back to top (visible on scroll) */
+.back-to-top{ position:fixed; right:30px; bottom:100px; width:52px; height:52px; border-radius:50%; background:linear-gradient(45deg,var(--primary-holo),var(--secondary-holo)); color:var(--deep-space); display:flex; align-items:center; justify-content:center; box-shadow:0 10px 30px rgba(0,201,255,0.18); z-index:80; opacity:0; visibility:hidden; transition:all .3s ease; cursor:pointer }
+.back-to-top.visible{ opacity:1; visibility:visible }
+
+/* Responsive grid & utility */
+.row{ display:flex; gap:18px; flex-wrap:wrap; }
+.col{ flex:1 1 0; min-width:0; }
+.small{ flex:0 0 320px; }
+
+/* About / Skills unified structure */
+.about-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:28px; align-items:center; }
+@media(max-width:880px){ .about-grid{ grid-template-columns:1fr; } }
+
+/* Avatar */
+.avatar-frame{ width:220px; height:220px; border-radius:50%; background:var(--glass); border:1px solid var(--glass-border); margin:0 auto; position:relative; overflow:hidden; }
+.avatar-glitch{ width:100%; height:100%; background:conic-gradient(from 0deg, var(--primary-holo), var(--secondary-holo), var(--accent-neon), var(--primary-holo)); opacity:0.2; animation:rotate 12s linear infinite }
+
+/* Skills orbital nodes (from your CSS chunk) */
+.skills-container{ display:flex; flex-direction:column; align-items:center; width:100% }
+.skills-orb{ position:relative; width:380px; height:380px; margin:0 auto 18px; }
+.skill-node{ position:absolute; width:84px; height:84px; border-radius:50%; background:var(--glass); border:1px solid var(--glass-border); display:flex; justify-content:center; align-items:center; cursor:pointer; transition:all .3s; }
+.skill-node .node-core{ width:20px; height:20px; border-radius:50%; background:var(--primary-holo); box-shadow:0 0 10px var(--primary-holo); }
+.skill-node .skill-name{ position:absolute; bottom:-32px; font-size:.8rem; white-space:nowrap; opacity:0; transition:opacity .25s; font-family:'Orbitron', monospace; }
+.skill-node:hover, .skill-node.active{ border-color:var(--primary-holo); box-shadow:0 0 22px rgba(0,243,255,0.4); transform:scale(1.05) }
+.skill-node:hover .skill-name, .skill-node.active .skill-name{ opacity:1 }
+
+/* position nodes (five sample positions) */
+.skill-node:nth-child(1){ top:50%; left:0; transform:translate(-10%, -50%); }
+.skill-node:nth-child(2){ top:10%; left:18%; transform:translate(0,0); }
+.skill-node:nth-child(3){ top:10%; right:18%; transform:translate(0,0); }
+.skill-node:nth-child(4){ bottom:10%; left:18%; transform:translate(0,0); }
+.skill-node:nth-child(5){ bottom:10%; right:18%; transform:translate(0,0); }
+
+.skill-details{ width:100%; max-width:860px; margin-top:18px; }
+.detail-panel{ display:none; padding:20px; background:var(--glass); border:1px solid var(--glass-border); border-radius:12px; }
+.detail-panel.active{ display:block; animation:fadeIn .45s ease }
+
+
+/* NEW: Services Grid */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.service-card {
+    background: var(--glass);
+    border-radius: var(--card-radius);
+    padding: 30px;
+    border: 1px solid var(--glass-border);
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.05), transparent);
+    transition: left 0.6s ease;
+}
+
+.service-card:hover::before {
+    left: 100%;
+}
+
+.service-card:hover {
+    border-color: var(--primary-holo);
+    transform: translateY(-8px);
+}
+
+.service-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: var(--primary-holo);
+}
+
+.service-card h3 {
+    font-family: 'Orbitron', monospace;
+    color: var(--primary-holo);
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+
+.service-card p {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.service-features {
+    text-align: left;
+    margin-top: 20px;
+}
+
+.service-feature {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.service-feature::before {
+    content: '▸';
+    color: var(--primary-holo);
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+/* NEW: Testimonials Grid */
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.testimonial-card {
+    background: var(--glass);
+    border-radius: var(--card-radius);
+    padding: 30px;
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.testimonial-card::before {
+    content: '"';
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    font-size: 4rem;
+    color: var(--primary-holo);
+    opacity: 0.2;
+    font-family: serif;
+}
+
+.testimonial-card:hover {
+    border-color: var(--primary-holo);
+    transform: translateY(-5px);
+}
+
+.testimonial-text {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-style: italic;
+    position: relative;
+    z-index: 2;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-top: 1px solid var(--glass-border);
+    padding-top: 20px;
+}
+
+.author-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--primary-holo), var(--secondary-holo));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--deep-space);
+    font-family: 'Orbitron', monospace;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.author-info h4 {
+    color: var(--primary-holo);
+    margin-bottom: 5px;
+    font-family: 'Orbitron', monospace;
+}
+
+.author-info p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+}
+
+
+/* Portfolio cards */
+.portfolio-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:22px; margin-top:16px; }
+.holo-card.project{ height:320px; position:relative; overflow:hidden; }
+.card-glitch{ position:absolute; top:0; left:0; width:100%; height:65%; background:linear-gradient(45deg,var(--primary-holo),var(--secondary-holo)); opacity:0.07 }
+.card-content{ position:absolute; bottom:0; left:0; right:0; padding:16px; background: linear-gradient(180deg, rgba(10,14,23,0.85), rgba(10,14,23,0.95)); }
+.card-content h3{ font-family:'Orbitron', monospace; color:var(--primary-holo); margin-bottom:6px }
+.card-content p{ color:rgba(255,255,255,0.75); font-size:.92rem }
+
+/* Video portals */
+.video-portal{ width:100%; aspect-ratio:16/9; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.03); background:#000; }
+
+/* Contact / transmission pads */
+.contact-interface{ display:grid; grid-template-columns: 1fr 1fr; gap:28px; margin-top:12px; }
+@media(max-width:880px){ .contact-interface{ grid-template-columns:1fr } }
+.transmission-pad, .feedback-pad{ background:var(--glass); border:1px solid var(--glass-border); border-radius:12px; padding:18px; }
+.input-holo{ margin-bottom:14px }
+.input-holo label{ display:block; margin-bottom:8px; font-family:'Orbitron', monospace; font-size:13px; color:var(--primary-holo) }
+.holo-input input, .holo-input textarea{ width:100%; padding:12px 14px; background: rgba(0,0,0,0.12); border:1px solid rgba(255,255,255,0.04); border-radius:10px; color:var(--primary-holo); font-family:'Exo 2', sans-serif; font-size:1rem }
+.holo-input input::placeholder, .holo-input textarea::placeholder{ color: rgba(0,243,255,0.35) }
+.holo-input input:focus, .holo-input textarea:focus{ outline:none; border-color:var(--primary-holo); box-shadow:0 0 16px rgba(0,243,255,0.12) }
+.transmit-btn{ width:100%; padding:12px; background: linear-gradient(90deg,var(--primary-holo),var(--secondary-holo)); border:none; border-radius:10px; color:var(--deep-space); font-family:'Orbitron', monospace; font-weight:800; cursor:pointer; }
+.transmit-btn.secondary{ background:var(--glass); color:var(--primary-holo); border:1px solid var(--primary-holo) }
+.transmit-btn:hover{ transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,243,255,0.12) }
+
+/* Newsletter */
+.newsletter-holo{ text-align:center; background:var(--glass); border:1px solid var(--glass-border); border-radius:12px; padding:36px; max-width:760px; margin:0 auto }
+.newsletter-form{ display:flex; gap:12px; max-width:600px; margin:12px auto 0 }
+.newsletter-form .holo-input{ flex:1 }
+
+/* Ensure button matches input height */
+.newsletter-form .transmit-btn {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+    
+/* Services / Testimonials etc. use holo-card */
+
+/* Quantum background grid + stars */
+#quantum-background{ position:fixed; inset:0; z-index:-30; pointer-events:none }
+.starfield{ position:absolute; inset:0; background-repeat:repeat; background-size:200px 200px; opacity:0.18; filter:blur(0.6px) }
+.energy-streams{ position:absolute; inset:0; background-size:50px 50px; opacity:0.06 }
+.holographic-grid{ position:absolute; inset:0; background-size:100px 100px; opacity:0.05; animation:grid-move 18s linear infinite }
+
+/* Animations */
+@keyframes rotate{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes pulse{ from{ opacity:.45; transform:scale(.96)} to{opacity:1; transform:scale(1)} }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none} }
+@keyframes glitch-1{ 0%{transform:translate(0)} 20%{transform:translate(-2px,2px)} 40%{transform:translate(-2px,-2px)} 60%{transform:translate(2px,2px)} 80%{transform:translate(2px,-2px)} 100%{transform:translate(0)} }
+@keyframes glitch-2{ 0%{transform:translate(0)} 20%{transform:translate(2px,2px)} 40%{transform:translate(2px,-2px)} 60%{transform:translate(-2px,2px)} 80%{transform:translate(-2px,-2px)} 100%{transform:translate(0)} }
+@keyframes twinkle{ from{opacity:0.6} to{opacity:1} }
+@keyframes grid-move{ from{transform:translate(0,0)} to{transform:translate(100px,100px)} }
+
+/* Responsive tweaks */
+@media (max-width: 880px){
+  .about-grid{ grid-template-columns: 1fr; }
+  .skills-orb{ width:320px; height:320px }
+  .portfolio-grid{ grid-template-columns: 1fr }
+  nav.floating{ right:8px; top:10px }
+  .holo-card{ padding:16px }
+}
+</style>
+</head>
+<body>
+<!-- NEW: Animated Intro Section -->
+<section id="intro-section">
+    <div class="holographic-display">
+        <div class="holo-grid"></div>
+        <div class="main-title">
+            <h1 class="glitch-text" data-text="REAL1EDITOR">REAL1EDITOR</h1>
+            <div class="title-sub">QUANTUM VIDEO EDITING SOLUTIONS</div>
+        </div>
+        <div class="ai-orb">
+            <div class="orb-ring"></div>
+            <div class="orb-glow"></div>
+        </div>
+        <div class="welcome-message">
+            <p>Welcome to the future of visual storytelling. I transform raw footage into cinematic experiences that transcend time and space.</p>
+            <div class="pulse-cta" onclick="hideIntro()">
+                <div class="cta-orb">BEGIN TRANSMISSION</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Neural loader / Begin Transmission -->
+<div id="neural-loader" role="alert" aria-live="polite">
+  <div class="hologram-sphere" aria-hidden="true"></div>
+  <div class="quantum-dots" aria-hidden="true">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+  <div class="loading-text"> REAL1EDITOR </div>
+</div>
+
+<!-- Quantum background layers -->
+<div id="quantum-background" aria-hidden="true">
+  <div class="starfield" style="background-image: radial-gradient(2px 2px at 20px 30px, #e7fefc, transparent), radial-gradient(1px 1px at 80px 120px, rgba(255,255,255,0.6), transparent);"></div>
+  <div class="energy-streams"></div>
+  <div class="holographic-grid"></div>
+  <canvas id="bgCanvas" aria-hidden="true"></canvas>
+</div>
+
+<!-- Floating nav (compact) -->
+<nav class="floating" aria-label="Primary navigation">
+  <button class="nav-pill" onclick="navTo('hero')">Home</button>
+  <button class="nav-pill" onclick="navTo('about')">About</button>
+  <button class="nav-pill" onclick="navTo('services')">Services</button>
+  <button class="nav-pill" onclick="navTo('skills')">Skills</button>
+  <button class="nav-pill" onclick="navTo('portfolio')">Portfolio</button>
+  <button class="nav-pill" onclick="navTo('testimonials')">Testimonials</button>
+  <button class="nav-pill" onclick="navTo('contact')">Contact</button>
+</nav>
+
+<!-- Voice orb -->
+<div id="voice-interface" aria-hidden="false">
+  <div class="voice-orb" id="voiceOrb" title="Voice Control (click to toggle)" onclick="toggleVoice()">
+    🎙️
+  </div>
+  <div class="voice-feedback" id="voiceFeedback">Idle</div>
+</div>
+
+<button class="back-to-top" id="backTop" title="Back to Top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section id="hero" class="section">
+    <div class="container">
+      <div class="holo-card" role="region" aria-labelledby="heroTitle">
+        <div class="section-header">
+          <h2 id="heroTitle" class="glitch-text" data-text="Real1Editor | Quantum Video Editing">Real1Editor | Quantum Video Editing</h2>
+          <div class="holo-divider"></div>
+        </div>
+        <div style="text-align:center;">
+          <p style="color:rgba(255,255,255,0.85);max-width:820px;margin:0 auto 18px;" class="reveal">
+            Cinematic stories, seamless motion, and quantum-level edits.
+          </p>
+          <div style="margin-top:18px;display:flex;gap:12px;justify-content:center;">
+            <button class="nav-pill" onclick="navTo('portfolio')">🎬 Enter Studio</button>
+            <button class="nav-pill" onclick="openLink('https://linktr.ee/real1editor')">🔗 Connect Hub</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="section">
+    <div class="container">
+      <div class="holo-card about-grid" role="region" aria-labelledby="aboutTitle">
+        <div class="avatar-frame" aria-hidden="true">
+          <div class="avatar-glitch"></div>
+        </div>
+        <div>
+          <div class="section-header">
+            <h2 id="aboutTitle">About</h2>
+            <div class="holo-divider"></div>
+          </div>
+          <div class="bio-data reveal">
+            <p>From rough cuts to polished visuals, I specialize in editing, motion design, and storytelling that connect with audiences.</p>
+            <div class="data-stats" style="margin-top:18px;display:flex;gap:24px;align-items:center;">
+              <div class="stat"><div class="stat-value">2030</div><div class="stat-label">Era</div></div>
+              <div class="stat"><div class="stat-value">∞</div><div class="stat-label">Creativity</div></div>
+              <div class="stat"><div class="stat-value">24/7</div><div class="stat-label">Broadcasts</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+    <!-- NEW: SERVICES SECTION -->
+  <section id="services" class="section">
+    <div class="container">
+      <div class="holo-card" role="region" aria-labelledby="servicesTitle">
+        <div class="section-header">
+          <h2 id="servicesTitle"> Services </h2>
+          <div class="holo-divider"></div>
+        </div>
+        <div class="services-grid reveal">
+          <div class="service-card">
+            <div class="service-icon">🎬</div>
+            <h3>Video Editing</h3>
+            <p>Professional editing for commercials, documentaries, social media, and corporate videos with precision cutting and seamless transitions.</p>
+            <div class="service-features">
+              <div class="service-feature">Commercial Advertising</div>
+              <div class="service-feature">Documentary Storytelling</div>
+              <div class="service-feature">Social Media Content</div>
+              <div class="service-feature">Corporate Videos</div>
+            </div>
+          </div>
+          
+          <div class="service-card">
+            <div class="service-icon">🌈</div>
+            <h3>Color Grading</h3>
+            <p>Expert color correction and creative grading to enhance visual tone and mood beyond conventional perception.</p>
+            <div class="service-features">
+              <div class="service-feature">Cinematic Color Palettes</div>
+              <div class="service-feature">Mood Enhancement</div>
+              <div class="service-feature">Color Correction</div>
+              <div class="service-feature">Custom LUTs</div>
+            </div>
+          </div>
+          
+          <div class="service-card">
+            <div class="service-icon">🌀</div>
+            <h3>Motion Graphics</h3>
+            <p>Creating engaging animated elements, titles, and visual effects that enhance your video content across dimensions.</p>
+            <div class="service-features">
+              <div class="service-feature">Animated Titles</div>
+              <div class="service-feature">Lower Thirds</div>
+              <div class="service-feature">Visual Effects</div>
+              <div class="service-feature">Transitions</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills" class="section">
+    <div class="container">
+      <div class="holo-card" role="region" aria-labelledby="skillsTitle">
+        <div class="section-header">
+          <h2 id="skillsTitle">Skills</h2>
+          <div class="holo-divider"></div>
+        </div>
+
+        <div class="skills-container reveal">
+          <div class="skills-orb" id="skillsOrb" aria-hidden="false">
+            <div class="skill-node" data-index="0">
+              <div class="node-core"></div>
+              <div class="skill-name">Cinematic Editing</div>
+            </div>
+            <div class="skill-node" data-index="1">
+              <div class="node-core"></div>
+              <div class="skill-name">Color Grading</div>
+            </div>
+            <div class="skill-node" data-index="2">
+              <div class="node-core"></div>
+              <div class="skill-name">Motion Graphics</div>
+            </div>
+            <div class="skill-node" data-index="3">
+              <div class="node-core"></div>
+              <div class="skill-name">Sound Design</div>
+            </div>
+            <div class="skill-node" data-index="4">
+              <div class="node-core"></div>
+              <div class="skill-name">Visual Effects (VFX)</div>
+            </div>
+          </div>
+          
+
+          <div class="skill-details">
+            <div id="detail0" class="detail-panel active">
+              <h3>Cinematic Editing</h3>
+              <p>Crafting seamless cuts, storytelling flow, and dynamic pacing that transform raw footage into cinematic experiences.</p>
+              <div class="tech-tags"><span class="tech-tag">Premiere Pro</span><span class="tech-tag"> · CapCut Pro</span><span class="tech-tag"> · DaVinci Resolve</span></div>
+            </div>
+
+            <div id="detail1" class="detail-panel">
+              <h3>Color Grading</h3>
+              <p>Balancing tones, enhancing mood, and creating cinematic palettes that bring depth and emotion to every scene.</p>
+              <div class="tech-tags"><span class="tech-tag">DaVinci Resolve</span><span class="tech-tag"> · Lumetri</span><span class="tech-tag"> · LUTs</span></div>
+            </div>
+
+            <div id="detail2" class="detail-panel">
+              <h3>Motion Graphics</h3>
+              <p>Designing titles, lower thirds, and smooth animations to make stories more engaging and professional.</p>
+              <div class="tech-tags"><span class="tech-tag">After Effects</span><span class="tech-tag"> · Motion</span> <span class="tech-tags"><span class="tech-tag"> · Templates</span></div>
+            </div>
+
+            <div id="detail3" class="detail-panel">
+              <h3>Sound Design</h3>
+              <p>Editing dialogue, adding effects, and mixing soundtracks for a polished, immersive audiovisual experience.</p>
+              <div class="tech-tags"><span class="tech-tag">Audition</span><span class="tech-tag"> · Pro Tools</span><span class="tech-tags"><span class="tech-tag"> · SFX Libraries</span></div>
+            </div>
+
+            <div id="detail4" class="detail-panel">
+              <h3>Visual Effects (VFX)</h3>
+              <p>Compositing, masking, and integrating effects that elevate footage with creative and futuristic visuals.</p>
+              <div class="tech-tags"><span class="tech-tag">After Effects</span><span class="tech-tag"> · Mocha</span><span class="tech-tags"><span class="tech-tag"> · Blender</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PORTFOLIO -->
+  <section id="portfolio" class="section">
+    <div class="container">
+      <div class="holo-card" role="region" aria-labelledby="portfolioTitle">
+        <div class="section-header">
+          <h2 id="portfolioTitle">Portfolio</h2>
+          <div class="holo-divider"></div>
+        </div>
+
+        <div class="portfolio-grid reveal">
+          <div class="holo-card project">
+            <div class="card-glitch"></div>
+            <div style="padding:12px">
+              <div class="video-portal">
+                <!-- sample YouTube preview / replace with your own -->
+                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&controls=0&modestbranding=1"
+                  frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen style="width:100%;height:100%"></iframe>
+              </div>
+            </div>
+            <div class="card-content">
+              <h3>Holo Dashboard</h3>
+              <p>Ultra-minimal admin dashboard with real-time AI widgets and holographic widgets.</p>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="nav-pill" onclick="openProject('https://youtu.be/dQw4w9WgXcQ')">Open Demo</button>
+                <button class="nav-pill" onclick="openLink('https://linktr.ee/real1editor')">More</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="holo-card project">
+            <div class="card-glitch"></div>
+            <div style="padding:12px">
+              <div class="video-portal">
+                <!-- sample YouTube preview 2 -->
+                <iframe src="https://www.youtube.com/embed/3JZ_D3ELwOQ?autoplay=1&mute=1&loop=1&playlist=3JZ_D3ELwOQ&controls=0&modestbranding=1"
+                  frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen style="width:100%;height:100%"></iframe>
+              </div>
+            </div>
+            <div class="card-content">
+              <h3>Orbital Commerce</h3>
+              <p>Neon-glass eCommerce prototype for immersive product experiences.</p>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="nav-pill" onclick="openProject('https://youtu.be/3JZ_D3ELwOQ')">Open Demo</button>
+                <button class="nav-pill" onclick="openLink('https://linktr.ee/real1editor')">More</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- YOUTUBE HUB -->
+  <section id="yt" class="section">
+    <div class="container">
+      <div class="holo-card">
+        <div class="section-header">
+          <h2>YouTube — Holo Broadcast Station</h2>
+          <div class="holo-divider"></div>
+        </div>
+
+        <div style="display:grid;gap:14px;">
+          <div class="video-portal reveal">
+            <!-- sample: replace dQw4... and 3JZ... with your videos -->
+            <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ&controls=0&modestbranding=1"
+              frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="width:100%;height:100%"></iframe>
+          </div>
+          <div class="video-portal reveal">
+            <iframe src="https://www.youtube.com/embed/3JZ_D3ELwOQ?autoplay=1&mute=1&loop=1&playlist=3JZ_D3ELwOQ&controls=0&modestbranding=1"
+              frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="width:100%;height:100%"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIKTOK HUB -->
+  <section id="tt" class="section">
+    <div class="container">
+      <div class="holo-card">
+        <div class="section-header">
+          <h2>TikTok — Quantum Stream Chamber</h2>
+          <div class="holo-divider"></div>
+        </div>
+
+        <div style="display:grid;gap:14px;">
+          <!-- sample TikTok embeds (replace URLs with your posts) -->
+          <div class="video-portal reveal">
+            <iframe src="https://www.tiktok.com/embed/v2/7031234567890123450" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen style="width:100%;height:100%"></iframe>
+          </div>
+          <div class="video-portal reveal">
+            <iframe src="https://www.tiktok.com/embed/v2/7041234567890123451" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen style="width:100%;height:100%"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  
+  
+  <!-- NEW: TESTIMONIALS SECTION -->
+  <section id="testimonials" class="section">
+    <div class="container">
+      <div class="holo-card" role="region" aria-labelledby="testimonialsTitle">
+        <div class="section-header">
+          <h2 id="testimonialsTitle">Client Testimonials</h2>
+          <div class="holo-divider"></div>
+        </div>
+        <div class="testimonials-grid reveal">
+          <div class="testimonial-card">
+            <div class="testimonial-text">
+              "The editing completely transformed our raw footage into a compelling narrative that exceeded our expectations. The attention to detail and creative input elevated our documentary to new dimensions."
+            </div>
+            <div class="testimonial-author">
+              <div class="author-avatar">SJ</div>
+              <div class="author-info">
+                <h4>Sarah Johnson</h4>
+                <p>Marketing Director, TechVision</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="testimonial-card">
+            <div class="testimonial-text">
+              "Working with Real1Editor was seamless. The quantum-speed turnaround without compromising quality made our social media campaign a massive success with record engagement rates."
+            </div>
+            <div class="testimonial-author">
+              <div class="author-avatar">MC</div>
+              <div class="author-info">
+                <h4>Michael Chen</h4>
+                <p>Creative Director, Horizon Films</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="testimonial-card">
+            <div class="testimonial-text">
+              "The color grading and motion graphics added a professional touch that made our product videos stand out. The dedication to perfection and continuous communication was impressive."
+            </div>
+            <div class="testimonial-author">
+              <div class="author-avatar">JW</div>
+              <div class="author-info">
+                <h4>Jessica Williams</h4>
+                <p>Brand Manager, StyleCo</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+
+  <!-- CONTACT / FEEDBACK / NEWSLETTER -->
+  <section id="contact" class="section">
+    <div class="container">
+      <div class="holo-card">
+        <div class="section-header">
+          <h2>Contact & Transmission</h2>
+          <div class="holo-divider"></div>
+        </div>
+
+        <div class="contact-interface reveal">
+          <div class="transmission-pad">
+            <h3>Project Transmission</h3>
+            <div class="input-holo">
+              <label for="cname">Name</label>
+              <div class="holo-input"><input id="cname" name="name" placeholder="Your name" required></div>
+            </div>
+            <div class="input-holo">
+              <label for="cemail">Email</label>
+              <div class="holo-input"><input id="cemail" type="email" name="email" placeholder="you@domain.com" required></div>
+            </div>
+            <div class="input-holo">
+              <label for="cproject">Project Idea</label>
+              <div class="holo-input"><textarea id="cproject" name="project" placeholder="Brief project description" required></textarea></div>
+            </div>
+            <button class="transmit-btn" onclick="transmit('project', document.getElementById('contactPad') || this)">Transmit</button>
+          </div>
+
+          <div class="feedback-pad">
+            <h3>Feedback & Suggestions</h3>
+            <div class="input-holo">
+              <label for="f_name">Name (optional)</label>
+              <div class="holo-input"><input id="f_name" name="fname" placeholder="Your name"></div>
+            </div>
+            <div class="input-holo">
+              <label for="f_msg">Message</label>
+              <div class="holo-input"><textarea id="f_msg" name="message" placeholder="Your feedback" required></textarea></div>
+            </div>
+            <button class="transmit-btn secondary" onclick="transmit('feedback', document.getElementById('feedbackPad') || this)">Send Feedback</button>
+          </div>
+        </div>
+       
+        
+        <div style="margin-top:18px" class="reveal">
+          <div class="newsletter-holo"> <br>
+          <h3>Quantum Edit Newsletter</h3>
+            <p>Join for <b>free</b> — cinematic updates & pro editing insights.</p> 
+            <div class="newsletter-form" style="justify-content:center">
+              <div class="holo-input"><input id="n_email" type="email" placeholder="you@domain.com" required></div>
+              <div><button class="transmit-btn" onclick="transmit('subscribe', document.getElementById('newsletterForm') || this)">Subscribe</button> </div>
+            </div>
+            </div>
+            <div style="margin-top:29px" class="reveal">
+          <div class="newsletter-holo">
+            <div class="newsletter-form" style="justify-content:center">
+            </div>
+            <h3>Connect & Collaborate</h3>
+            <div style="margin-top:7px">
+              <button class="nav-pill" onclick="openLink('https://linktr.ee/real1editor')">🔗 Collab Portal 🔗</button>
+              
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <section class="section">
+    <div class="container">
+      <div class="holo-card" style="text-align:center">
+        <p style="color:var(--muted)"> &copy; 2025 Real1Editor. All rights reserved.</p>
+      </div>
+    </div>
+  </section>
+  
+</main>
+
+<script>
+/* NEW: Intro Section Functions */
+function hideIntro() {
+    const introSection = document.getElementById('intro-section');
+    if (introSection) {
+        introSection.classList.add('hidden');
+        // Add a small delay before removing from DOM to allow animation
+        setTimeout(() => {
+            introSection.style.display = 'none';
+        }, 1000);
+    }
+}
+
+// Show intro on page load
+window.addEventListener('load', () => {
+    // First hide neural loader
+    setTimeout(() => {
+        document.getElementById('neural-loader').classList.add('hidden');
+        
+        // Then show intro section
+        const introSection = document.getElementById('intro-section');
+        if (introSection) {
+            introSection.style.display = 'flex';
+            setTimeout(() => {
+                introSection.classList.remove('hidden');
+            }, 100);
+        }
+    }, 2000); // Match your neural loader timing
+});
+
+/* ===========================
+   Initialization & helpers
+   =========================== */
+const TELEGRAM_BOT_LINK = 'https://t.me/Real1editorBot';
+const SERVER_ENDPOINT = '/api/telegram'; // serverless webhook path
+let tgw = window.Telegram?.WebApp || null;
+const IN_TELEGRAM = !!tgw;
+if(IN_TELEGRAM){ try{ tgw.ready(); tgw.expand(); }catch(e){} }
+
+/* Hide neural loader after page ready (simulate short boot) */
+// Moved to intro section handling above
+
+/* Navigation helpers */
+function navTo(id){ 
+    // Hide intro if it's still visible
+    hideIntro();
+    document.getElementById(id)?.scrollIntoView({behavior:'smooth'});
+}
+function openLink(url){ try{ if(IN_TELEGRAM && tgw.openTelegramLink) return tgw.openTelegramLink(url); }catch(e){} window.open(url,'_blank') }
+function openProject(url){ window.open(url,'_blank') }
+
+/* Canvas particle background (simple & efficient) */
+(function(){
+  const c = document.getElementById('bgCanvas');
+  const ctx = c.getContext('2d', { alpha:true });
+  let w=0,h=0, parts=[];
+  function resize(){ w = c.width = innerWidth; h = c.height = innerHeight; const count=Math.max(50, Math.floor((w*h)/14000)); parts = Array.from({length:count}).map(()=>({ x:Math.random()*w, y:Math.random()*h, vx:(Math.random()-0.5)*0.6, vy:(Math.random()-0.5)*0.6, r:0.8+Math.random()*2.2, hue:170+Math.random()*120, a:0.02+Math.random()*0.12 })); }
+  window.addEventListener('resize', resize); resize();
+  window.__VOICE_PULSE = s => { pulse = Math.max(pulse || 0, Math.min(8, s)); };
+  let pulse = 0;
+  function frame(now){
+    ctx.clearRect(0,0,w,h);
+    // dark wash
+    const g = ctx.createLinearGradient(0,0,w,h); g.addColorStop(0,'rgba(3,6,15,0.95)'); g.addColorStop(1,'rgba(0,0,0,0.96)'); ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    for(const p of parts){
+      p.vx += Math.cos(now*0.0003 + p.r)*0.0007;
+      p.vy += Math.sin(now*0.00025 + p.r)*0.0007;
+      if(pulse>0){ const cx=w/2,cy=h/2,dx=p.x-cx,dy=p.y-cy,dist=Math.sqrt(dx*dx+dy*dy)+0.001; const push = pulse*0.12*(1/Math.max(1,dist/220)); p.vx += (dx/dist)*push; p.vy += (dy/dist)*push; }
+      p.x += p.vx; p.y += p.vy;
+      if(p.x < -60) p.x = w+60; if(p.x > w+60) p.x = -60; if(p.y < -60) p.y = h+60; if(p.y > h+60) p.y = -60;
+      const grad = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*10);
+      grad.addColorStop(0, `hsla(${p.hue},90%,60%,${p.a*1.6})`);
+      grad.addColorStop(0.4, `hsla(${p.hue},90%,50%,${p.a})`);
+      grad.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.fillStyle = grad; ctx.arc(p.x,p.y,p.r*6,0,Math.PI*2); ctx.fill();
+    }
+    pulse *= 0.9;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* =========================
+   Skill nodes interaction
+   ========================= */
+(function(){
+  const nodes = document.querySelectorAll('.skill-node');
+  const panels = [...document.querySelectorAll('.detail-panel')];
+  nodes.forEach((n, i) => {
+    n.addEventListener('click', () => {
+      nodes.forEach(x=>x.classList.remove('active'));
+      panels.forEach(p=>p.classList.remove('active'));
+      n.classList.add('active');
+      panels[i]?.classList.add('active');
+      window.__VOICE_PULSE && window.__VOICE_PULSE(3);
+    });
+  });
+})();
+
+/* =========================
+   Reveal on interaction + entry animations
+   ========================= */
+(function(){
+  function revealAll(){ document.querySelectorAll('.reveal').forEach(el=>el.classList.add('revealed')); }
+  window.addEventListener('mousemove', revealAll, {once:true}); window.addEventListener('keydown', revealAll, {once:true}); window.addEventListener('touchstart', revealAll, {once:true});
+  // intersection observer for animated entry
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(en => {
+      if(en.isIntersecting){ en.target.classList.add('revealed'); en.target.style.animation='fadeIn .6s ease both'; obs.unobserve(en.target); }
+    });
+  }, {threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+})();
+
+/* =========================
+   Voice recognition + TTS
+   ========================= */
+(function(){
+  const orb = document.getElementById('voiceOrb');
+  const fb = document.getElementById('voiceFeedback');
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec=null, listening=false;
+  function speak(t){ if('speechSynthesis' in window){ const u=new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=1; speechSynthesis.cancel(); speechSynthesis.speak(u);} }
+  if(!SR){ orb.style.display='none'; return; }
+  rec = new SR(); rec.continuous=true; rec.interimResults=false; rec.lang='en-US';
+  rec.onresult = (e) => {
+    const txt = e.results[e.results.length-1][0].transcript.trim().toLowerCase();
+    fb.textContent = 'Heard: ' + txt.slice(0,45);
+    handleVoiceCommand(txt);
+    window.__VOICE_PULSE && window.__VOICE_PULSE(4);
+  };
+  rec.onend = ()=> { if(listening) rec.start(); else { orb.classList.remove('active'); fb.classList.remove('active'); fb.textContent='Idle'; } };
+  window.toggleVoice = function(){
+    listening = !listening;
+    if(listening){ rec.start(); orb.classList.add('active'); fb.classList.add('active'); fb.textContent='Listening...'; speak('Voice control activated.'); }
+    else { rec.stop(); orb.classList.remove('active'); fb.classList.remove('active'); fb.textContent='Idle'; speak('Voice control deactivated.'); }
+  };
+  window.handleVoiceCommand = function(txt){
+    if(txt.includes('about')) navTo('about');
+    else if(txt.includes('skills')) navTo('skills');
+    else if(txt.includes('portfolio')) navTo('portfolio');
+    else if(txt.includes('youtube')||txt.includes('broadcast')) navTo('yt');
+    else if(txt.includes('tiktok')||txt.includes('stream')) navTo('tt');
+    else if(txt.includes('contact')) navTo('contact');
+    else if(txt.includes('subscribe')) navTo('contact');
+    else if(txt.includes('home')||txt.includes('top')) window.scrollTo({top:0,behavior:'smooth'});
+    // some carousel commands
+    else if(txt.includes('next')) window.nextProject && window.nextProject();
+    else if(txt.includes('previous')||txt.includes('prev')) window.prevProject && window.prevProject();
+    // acknowledge
+    try { speak('Command received'); } catch(e){}
+  };
+})();
+
+/* =========================
+   Thought-control illusion: cursor speed & device tilt
+   ========================= */
+(function(){
+  let lx=0,ly=0,lt=Date.now();
+  document.addEventListener('mousemove', e=>{
+    const now = Date.now(), dt = Math.max(1, now - lt);
+    const dist = Math.hypot(e.clientX - lx, e.clientY - ly);
+    const speed = dist / dt; lx=e.clientX; ly=e.clientY; lt=now;
+    const intensity = Math.min(6, speed * 12);
+    if(intensity > 0.2) window.__VOICE_PULSE && window.__VOICE_PULSE(intensity);
+  });
+  if(window.DeviceOrientationEvent){
+    window.addEventListener('deviceorientation', ev => {
+      const tilt = Math.abs(ev.beta || 0) + Math.abs(ev.gamma || 0);
+      const level = Math.min(4, tilt/45);
+      if(level>0.6) window.__VOICE_PULSE && window.__VOICE_PULSE(level);
+    }, {passive:true});
+  }
+})();
+
+/* =========================
+   Form transmit function (unified)
+   - types: 'project' | 'feedback' | 'subscribe'
+   - inside Telegram: uses tgw.sendData(JSON)
+   - fallback: POST to SERVER_ENDPOINT
+   ========================= */
+async function transmit(type, sourceEl){
+  const payload = { type, source: IN_TELEGRAM ? 'webapp' : 'web' };
+  if(type === 'project'){
+    payload.name = document.getElementById('cname')?.value || '';
+    payload.email = document.getElementById('cemail')?.value || '';
+    payload.message = document.getElementById('cproject')?.value || '';
+  } else if(type === 'feedback'){
+    payload.name = document.getElementById('f_name')?.value || '';
+    payload.message = document.getElementById('f_msg')?.value || '';
+  } else if(type === 'subscribe'){
+    payload.email = document.getElementById('n_email')?.value || '';
+  }
+
+  // inside Telegram WebApp => sendData
+  if(IN_TELEGRAM && tgw && typeof tgw.sendData === 'function'){
+    try{
+      tgw.sendData(JSON.stringify(payload));
+      showToast('Sent inside Telegram app.');
+      window.__VOICE_PULSE && window.__VOICE_PULSE(3);
+      return false;
+    }catch(e){ console.warn('tg.sendData failed', e); }
+  }
+
+  // fallback: serverless
+  try{
+    const res = await fetch(SERVER_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const j = await res.json();
+    if(res.ok){ showToast('Sent to Telegram (server).'); window.__VOICE_PULSE && window.__VOICE_PULSE(3); // clear inputs
+      if(type==='project'){ document.getElementById('cname').value=''; document.getElementById('cemail').value=''; document.getElementById('cproject').value=''; }
+      if(type==='feedback'){ document.getElementById('f_name').value=''; document.getElementById('f_msg').value=''; }
+      if(type==='subscribe'){ document.getElementById('n_email').value=''; }
+    } else { showToast('Server error: '+(j.error||'unknown')); }
+  }catch(err){
+    console.error(err); showToast('Network error — opening Telegram chat.'); openLink(TELEGRAM_BOT_LINK);
+  }
+  return false;
+}
+
+/* =========================
+   small toast helper
+   ========================= */
+function showToast(msg, t=2200){
+  const el = document.createElement('div'); el.textContent = msg;
+  el.style.position='fixed'; el.style.left='50%'; el.style.bottom='120px'; el.style.transform='translateX(-50%)'; el.style.background='rgba(0,0,0,0.6)'; el.style.color='white'; el.style.padding='10px 14px'; el.style.borderRadius='10px'; el.style.zIndex=9999; el.style.boxShadow='0 10px 40px rgba(0,0,0,0.6)';
+  document.body.appendChild(el); setTimeout(()=>{ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, t);
+}
+
+/* show/hide back-to-top based on scroll */
+(function(){
+  const btn = document.getElementById('backTop');
+  window.addEventListener('scroll', ()=> {
+    if(window.scrollY > window.innerHeight) btn.classList.add('visible'); else btn.classList.remove('visible');
+  });
+})();
+
+/* Simple accessibility: allow nav via keyboard shortcuts (1..9) */
+document.addEventListener('keydown', e=>{
+  if(e.key === '1') navTo('hero');
+  if(e.key === '2') navTo('about');
+  if(e.key === '3') navTo('services');
+  if(e.key === '4') navTo('skills');
+  if(e.key === '5') navTo('portfolio');
+  if(e.key === '6') navTo('testimonials');
+  if(e.key === '7') navTo('contact');
+});
+
+/* Small for demo: sample next/prev handlers for portfolio (textual) */
+(function(){
+  const projects=[ 'Quantum UI — HoloDashboard', 'Neural Site — ThoughtFlow', 'Orbital Commerce' ];
+  let idx=0; window.nextProject = ()=>{ idx=(idx+1)%projects.length; document.getElementById('projTitle') && (document.getElementById('projTitle').textContent = projects[idx]); }
+  window.prevProject = ()=>{ idx=(idx-1+projects.length)%projects.length; document.getElementById('projTitle') && (document.getElementById('projTitle').textContent = projects[idx]); }
+})();
+
+</script>
+</body>
+</html>
