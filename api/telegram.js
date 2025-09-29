@@ -1,4 +1,4 @@
-// api/telegram.js - Quantum Transmission System
+// api/telegram.js - Quantum Transmission System for Real1Editor
 export default async function handler(req, res) {
   // Set CORS headers for cross-domain requests
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -42,48 +42,48 @@ export default async function handler(req, res) {
     }
 
     // Create quantum-themed message
-    let text = `🌌 *QUANTUM TRANSMISSION INITIATED* 🌌\\n`;
+    let text = `🌌 *QUANTUM TRANSMISSION INITIATED* 🌌\n`;
     text += `⏰ *Time*: ${new Date().toLocaleString('en-US', { 
       timeZone: 'Africa/Addis_Ababa',
       dateStyle: 'full',
       timeStyle: 'medium'
-    })}\\n`;
-    text += `📡 *Transmission Type*: ${type.toUpperCase()}\\n`;
-    text += `🚀 *Source*: ${source === 'webapp' ? 'Telegram Mini App' : 'Quantum Web Portal'}\\n\\n`;
+    })}\n`;
+    text += `📡 *Transmission Type*: ${type.toUpperCase()}\n`;
+    text += `🚀 *Source*: ${source === 'webapp' ? 'Telegram Mini App' : 'Quantum Web Portal'}\n\n`;
 
     // Format message based on transmission type
     switch(type) {
       case 'project':
-        text += `🎬 *NEW PROJECT REQUEST*\\n`;
-        text += `├ *Client*: ${payload.name || 'Anonymous Quantum Being'}\\n`;
-        text += `├ *Email*: ${payload.email || 'Not provided'}\\n`;
-        text += `├ *Project Details*:\\n`;
-        text += `└ ${payload.message || payload.project || 'No details provided'}\\n`;
+        text += `🎬 *NEW PROJECT REQUEST*\n`;
+        text += `├ *Client*: ${payload.name || 'Anonymous Quantum Being'}\n`;
+        text += `├ *Email*: ${payload.email || 'Not provided'}\n`;
+        text += `├ *Project Details*:\n`;
+        text += `└ ${payload.message || payload.project || 'No details provided'}\n`;
         break;
 
       case 'feedback':
-        text += `💬 *CLIENT FEEDBACK*\\n`;
-        text += `├ *From*: ${payload.name || 'Anonymous'}\\n`;
-        text += `├ *Message*:\\n`;
-        text += `└ ${payload.message || 'Empty feedback'}\\n`;
+        text += `💬 *CLIENT FEEDBACK*\n`;
+        text += `├ *From*: ${payload.name || 'Anonymous'}\n`;
+        text += `├ *Message*:\n`;
+        text += `└ ${payload.message || 'Empty feedback'}\n`;
         break;
 
       case 'subscribe':
-        text += `📧 *NEWSLETTER SUBSCRIPTION*\\n`;
-        text += `├ *Email*: ${payload.email || 'Invalid email'}\\n`;
-        text += `├ *Status*: 🟢 ACTIVE\\n`;
-        text += `└ *Frequency*: Quantum Updates Enabled\\n`;
+        text += `📧 *NEWSLETTER SUBSCRIPTION*\n`;
+        text += `├ *Email*: ${payload.email || 'Invalid email'}\n`;
+        text += `├ *Status*: 🟢 ACTIVE\n`;
+        text += `└ *Frequency*: Quantum Updates Enabled\n`;
         break;
 
       default:
-        text += `⚡ *UNKNOWN TRANSMISSION*\\n`;
-        text += `├ *Data*: ${JSON.stringify(payload).substring(0, 200)}\\n`;
-        text += `└ *Status*: 🔴 INVESTIGATE\\n`;
+        text += `⚡ *UNKNOWN TRANSMISSION*\n`;
+        text += `├ *Data*: ${JSON.stringify(payload).substring(0, 200)}\n`;
+        text += `└ *Status*: 🔴 INVESTIGATE\n`;
     }
 
-    text += `\\n---\\n`;
-    text += `⚡ *REAL1EDITOR QUANTUM SYSTEMS* ⚡\\n`;
-    text += `📍 Neo-Addis | 3045 Era | Video Editing Elite\\n`;
+    text += `\n---\n`;
+    text += `⚡ *REAL1EDITOR QUANTUM SYSTEMS* ⚡\n`;
+    text += `📍 Neo-Addis | 3045 Era | Video Editing Elite\n`;
     text += `🌐 ${source === 'webapp' ? 'Telegram Mini App' : 'Web Portal'}`;
 
     // Send to Telegram
