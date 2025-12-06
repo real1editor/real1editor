@@ -1,1 +1,19 @@
+# Dependencies
 node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+.pnp.*
+.DS_Store
+
+# Environment variables (to avoid committing secrets)
+.env
+.env.local
+.env.*.local
+
+# Vercel build output
+.vercel
