@@ -3927,10 +3927,15 @@ document.addEventListener('keydown', e=>{
 })();
 
 </script>
+
+    /*  advertising  on the bot */
     <script src="https://inapp.telega.io/sdk/v1/sdk.js"></script>
 <script>
   const ads = window.TelegaIn.AdsController.create_miniapp({
     token: '3004d2ae-09a5-4f03-80b5-f2a7d56f8973' });
+ads.ad_show({
+  adBlockUuid: "52d7ee8e-bfba-414f-b1b6-57c970ca07a6"
+});  
 </script>
 </body>
 </html>
